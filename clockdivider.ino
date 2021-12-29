@@ -13,8 +13,12 @@ const int clk_in = 9;
 const int out_1 = 5;
 const int out_2 = 6;
 const int out_3 = 7;
+const int enc_sw = 2;
+
 int prevClockState = 0;
+int prevSwitchState = 0;
 int counter = 0;
+int outputSelector = 1;
 int divider_1 = 2;
 int divider_2 = 4;
 int divider_3 = 1;
@@ -24,10 +28,12 @@ int divider_4 = 1;
 void setup() {
 	Serial.begin(9600);
 	prevClockState = digitalRead(clk_in);
+	prevSwitchState = digitalRead(enc_sw);
 	pinMode(clk_in, INPUT);
 	pinMode(out_1, OUTPUT);
 	pinMode(out_2, OUTPUT);
 	pinMode(out_3, OUTPUT);
+	pinMode(enc_sw, INPUT_PULLUP);
 }
 
 void loop() {
@@ -36,6 +42,7 @@ void loop() {
 		// trigOutput_2();
 		trigOutput(out_1, divider_1);
 		trigOutput(out_2, divider_2);
+		encSwitchRead();
 		
 	
 }
@@ -71,6 +78,24 @@ void trigOutput(int outTrig, int divisionNum){
 	} else if (prevClockState == 0) {
 		digitalWrite(outTrig, LOW);
 	}
+}
+
+void encSwitchRead() {
+	int enc_sw_read = digitalRead(enc_sw);
+	if (enc_sw_read == 0 && enc_sw_read != prevSwitchState ) {
+		Serial.println("enc switch clicked");
+		if (outputSelector < 4) {
+			outputSelector = outputSelector + 1;
+		} else {
+			outputSelector = 1;
+		}
+		prevSwitchState = enc_sw_read;
+		Serial.print("output selector: ");
+	Serial.println(outputSelector);
+	} else if (enc_sw_read == 1 && enc_sw_read != prevSwitchState ) {
+		prevSwitchState = enc_sw_read;
+	}
+	
 }
 
 // void trigOutput_1(){
