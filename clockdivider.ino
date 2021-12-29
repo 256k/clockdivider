@@ -1,14 +1,20 @@
 // there will be an input gate
 // there will be 6 output gates
+// each output will have 2 corresponding LEDs: 1 to indicate pulse (red) and 1 to indicate selected state (yellow).
 // each output gate will be a division of the input gate clock
 // each output gate clock division rate will be selectable using a encoder/switch
-// you turn encoder for selecting the division that will round robin between a set of divisions and hold down the encoder and turn to select the output
-// each output will also have a coresponding LED
-// those LEDs are independently controlled from the aruino through code and unrelated physically to the output gates
-// they will normally follow the output gate on/off
-// when encoder switch held down, only the selected output will have the corresponding LED ON
+// to select a output, click on encoder and the selected LED will round robin betwen all 6 outputs.
+// to change rate, while desired output to change is selected, turn encoder to increase or decreate rate 
+// encoder rotation will round robin between a fixed range of divisions.
 
+// GENERAL TODOS:
+// save divisions and selected output between reboots.
+// add i2c functionality to change division rate for each output
+// add a reset input (will reset the counter value to 0)
+// define a division range of vlaues that would work well as a clock divider ( i want to have odd divisions too)
+// finish encoder division selector function
 
+// define hardware pins:
 const int clk_in = 9;
 const int out_1 = 5;
 const int out_2 = 6;
@@ -38,8 +44,6 @@ void setup() {
 
 void loop() {
 		readClock();
-		// trigOutput_1();
-		// trigOutput_2();
 		trigOutput(out_1, divider_1);
 		trigOutput(out_2, divider_2);
 		encSwitchRead();
@@ -49,7 +53,7 @@ void loop() {
 
 void count() {
 	counter = counter + 1;
-	// 64 is the maximum division allowed.
+	// 64 is the maximum division allowed. this will change later.
 	if (counter > 64) { counter = 1;}
 	Serial.println(counter);
 }
@@ -67,14 +71,10 @@ void readClock() {
 
 // universal trigger function:
 void trigOutput(int outTrig, int divisionNum){
-	// for now this will be the clock divided by 4
-	// Serial.print("counter % 4: ");
-	// Serial.println(counter%4);
 	if (counter % divisionNum == 0 && prevClockState == 1 && digitalRead(outTrig) == LOW) {
 		digitalWrite(outTrig, HIGH);
 		Serial.print("trig output: ");
 		Serial.println(outTrig);
-		// Serial.println("OUTPUT 2 TRIGGRRED");
 	} else if (prevClockState == 0) {
 		digitalWrite(outTrig, LOW);
 	}
@@ -97,30 +97,6 @@ void encSwitchRead() {
 	}
 	
 }
-
-// void trigOutput_1(){
-// 	// for now this will be the clock divided by 4
-// 	// Serial.print("counter % 4: ");
-// 	// Serial.println(counter%4);
-// 	if (counter % 4 == 0 && prevClockState == 1 && digitalRead(out_1) == LOW) {
-// 		digitalWrite(out_1, HIGH);
-// 		// Serial.println("OUTPUT 1 TRIGGRRED");
-// 	} else if (prevClockState == 0) {
-// 		digitalWrite(out_1, LOW);
-// 	}
-// }
-// void trigOutput_2(){
-// 	// for now this will be the clock divided by 4
-// 	// Serial.print("counter % 4: ");
-// 	// Serial.println(counter%4);
-// 	if (counter % 2 == 0 && prevClockState == 1 && digitalRead(out_2) == LOW) {
-// 		digitalWrite(out_2, HIGH);
-// 		// Serial.println("OUTPUT 2 TRIGGRRED");
-// 	} else if (prevClockState == 0) {
-// 		digitalWrite(out_2, LOW);
-// 	}
-// }
-
 
 void setDivision(){
 	// TODO: read the user input to set the division rate
