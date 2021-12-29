@@ -28,11 +28,14 @@ void setup() {
 
 void loop() {
 		readClock();
+		trigOutput_1();
+		trigOutput_2();
 	
 }
 
 void count() {
 	counter = counter + 1;
+	// 64 is the maximum division allowed.
 	if (counter > 64) { counter = 1;}
 	Serial.println(counter);
 }
@@ -44,5 +47,28 @@ void readClock() {
 		count();
 	} else if (inputState == 0 && inputState != prevClockState) {
 		prevClockState = inputState;
+	}
+}
+
+void trigOutput_1(){
+	// for now this will be the clock divided by 4
+	// Serial.print("counter % 4: ");
+	// Serial.println(counter%4);
+	if (counter % 4 == 0 && prevClockState == 1 && digitalRead(out_1) == LOW) {
+		digitalWrite(out_1, HIGH);
+		Serial.println("OUTPUT 1 TRIGGRRED");
+	} else if (prevClockState == 0) {
+		digitalWrite(out_1, LOW);
+	}
+}
+void trigOutput_2(){
+	// for now this will be the clock divided by 4
+	// Serial.print("counter % 4: ");
+	// Serial.println(counter%4);
+	if (counter % 2 == 0 && prevClockState == 1 && digitalRead(out_2) == LOW) {
+		digitalWrite(out_2, HIGH);
+		Serial.println("OUTPUT 2 TRIGGRRED");
+	} else if (prevClockState == 0) {
+		digitalWrite(out_2, LOW);
 	}
 }
