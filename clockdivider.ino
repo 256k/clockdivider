@@ -13,9 +13,13 @@ const int clk_in = 9;
 const int out_1 = 5;
 const int out_2 = 6;
 const int out_3 = 7;
+int prevClockState = 0;
+int counter = 0;
 
 
 void setup() {
+	Serial.begin(9600);
+	prevClockState = digitalRead(clk_in);
 	pinMode(clk_in, INPUT);
 	pinMode(out_1, OUTPUT);
 	pinMode(out_2, OUTPUT);
@@ -23,9 +27,22 @@ void setup() {
 }
 
 void loop() {
-	if (digitalRead(clk_in) == HIGH) {
-		digitalWrite(out_1, HIGH);
-	} else {
-		digitalWrite(out_1, LOW);
+		readClock();
+	
+}
+
+void count() {
+	counter = counter + 1;
+	if (counter > 64) { counter = 1;}
+	Serial.println(counter);
+}
+
+void readClock() {
+	const int inputState = digitalRead(clk_in);
+	if ( inputState == 1 && inputState != prevClockState) {
+		prevClockState = inputState;
+		count();
+	} else if (inputState == 0 && inputState != prevClockState) {
+		prevClockState = inputState;
 	}
 }
