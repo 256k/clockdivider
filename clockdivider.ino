@@ -15,6 +15,10 @@ const int out_2 = 6;
 const int out_3 = 7;
 int prevClockState = 0;
 int counter = 0;
+int divider_1 = 2;
+int divider_2 = 4;
+int divider_3 = 1;
+int divider_4 = 1;
 
 
 void setup() {
@@ -28,8 +32,11 @@ void setup() {
 
 void loop() {
 		readClock();
-		trigOutput_1();
-		trigOutput_2();
+		// trigOutput_1();
+		// trigOutput_2();
+		trigOutput(out_1, divider_1);
+		trigOutput(out_2, divider_2);
+		
 	
 }
 
@@ -50,25 +57,46 @@ void readClock() {
 	}
 }
 
-void trigOutput_1(){
+
+// universal trigger function:
+void trigOutput(int outTrig, int divisionNum){
 	// for now this will be the clock divided by 4
 	// Serial.print("counter % 4: ");
 	// Serial.println(counter%4);
-	if (counter % 4 == 0 && prevClockState == 1 && digitalRead(out_1) == LOW) {
-		digitalWrite(out_1, HIGH);
-		Serial.println("OUTPUT 1 TRIGGRRED");
+	if (counter % divisionNum == 0 && prevClockState == 1 && digitalRead(outTrig) == LOW) {
+		digitalWrite(outTrig, HIGH);
+		Serial.print("trig output: ");
+		Serial.println(outTrig);
+		// Serial.println("OUTPUT 2 TRIGGRRED");
 	} else if (prevClockState == 0) {
-		digitalWrite(out_1, LOW);
+		digitalWrite(outTrig, LOW);
 	}
 }
-void trigOutput_2(){
-	// for now this will be the clock divided by 4
-	// Serial.print("counter % 4: ");
-	// Serial.println(counter%4);
-	if (counter % 2 == 0 && prevClockState == 1 && digitalRead(out_2) == LOW) {
-		digitalWrite(out_2, HIGH);
-		Serial.println("OUTPUT 2 TRIGGRRED");
-	} else if (prevClockState == 0) {
-		digitalWrite(out_2, LOW);
-	}
+
+// void trigOutput_1(){
+// 	// for now this will be the clock divided by 4
+// 	// Serial.print("counter % 4: ");
+// 	// Serial.println(counter%4);
+// 	if (counter % 4 == 0 && prevClockState == 1 && digitalRead(out_1) == LOW) {
+// 		digitalWrite(out_1, HIGH);
+// 		// Serial.println("OUTPUT 1 TRIGGRRED");
+// 	} else if (prevClockState == 0) {
+// 		digitalWrite(out_1, LOW);
+// 	}
+// }
+// void trigOutput_2(){
+// 	// for now this will be the clock divided by 4
+// 	// Serial.print("counter % 4: ");
+// 	// Serial.println(counter%4);
+// 	if (counter % 2 == 0 && prevClockState == 1 && digitalRead(out_2) == LOW) {
+// 		digitalWrite(out_2, HIGH);
+// 		// Serial.println("OUTPUT 2 TRIGGRRED");
+// 	} else if (prevClockState == 0) {
+// 		digitalWrite(out_2, LOW);
+// 	}
+// }
+
+
+void setDivision(){
+	// TODO: read the user input to set the division rate
 }
