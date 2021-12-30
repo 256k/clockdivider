@@ -12,23 +12,42 @@
 // add i2c functionality to change division rate for each output
 // add a reset input (will reset the counter value to 0)
 // define a division range of vlaues that would work well as a clock divider ( i want to have odd divisions too)
-// finish encoder division selector function
+// finish encoder division selector function (DONE)
+
+
+// configuration of functionality:
+const int numberOfOutputs = 		4;
+const int maximumDivisionAmount = 	32;
+//=======================
 
 // define hardware pins:
-const int clk_in = 9;
-const int out_1 = 5;
-const int out_2 = 6;
-const int out_3 = 7;
-const int enc_sw = 2;
+#define clk_in  	9
+#define out_1  		5
+#define out_2  		6
+#define out_3  		7
+#define enc_sw  	2
+#define enc_A 		3
+#define enc_B 		4
 
-int prevClockState = 0;
-int prevSwitchState = 0;
-int counter = 0;
-int outputSelector = 1;
-int divider_1 = 2;
-int divider_2 = 4;
-int divider_3 = 1;
-int divider_4 = 1;
+//=======================
+
+// define states and variables:
+int prevClockState;
+int enc_sw_state;
+int prevSwitchState;
+int enc_a_state;
+int enc_a_prevState;
+int enc_stepCount =		0;
+int counter = 			0;
+int outputSelector = 	1;
+int divisions[] = {2,4,8,16};
+int divider_1 = 		2;
+int divider_2 = 		4;
+int divider_3 = 		1;
+int divider_4 = 		1;
+//=======================
+
+
 
 
 void setup() {
@@ -40,13 +59,16 @@ void setup() {
 	pinMode(out_2, OUTPUT);
 	pinMode(out_3, OUTPUT);
 	pinMode(enc_sw, INPUT_PULLUP);
+	pinMode(enc_A, INPUT_PULLUP);
+	pinMode(enc_B, INPUT_PULLUP);
 }
 
 void loop() {
 		readClock();
-		trigOutput(out_1, divider_1);
-		trigOutput(out_2, divider_2);
+		trigOutput(out_1, divisions[0]);
+		trigOutput(out_2, divisions[1]);
 		encSwitchRead();
+		encRotationRead();
 		
 	
 }
@@ -54,8 +76,7 @@ void loop() {
 void count() {
 	counter = counter + 1;
 	// 64 is the maximum division allowed. this will change later.
-	if (counter > 64) { counter = 1;}
-	Serial.println(counter);
+	if (counter > maximumDivisionAmount) { counter = 1;}
 }
 
 void readClock() {
@@ -73,31 +94,50 @@ void readClock() {
 void trigOutput(int outTrig, int divisionNum){
 	if (counter % divisionNum == 0 && prevClockState == 1 && digitalRead(outTrig) == LOW) {
 		digitalWrite(outTrig, HIGH);
-		Serial.print("trig output: ");
-		Serial.println(outTrig);
 	} else if (prevClockState == 0) {
 		digitalWrite(outTrig, LOW);
 	}
 }
 
 void encSwitchRead() {
-	int enc_sw_read = digitalRead(enc_sw);
-	if (enc_sw_read == 0 && enc_sw_read != prevSwitchState ) {
+	enc_sw_state = digitalRead(enc_sw);
+	if (enc_sw_state == 0 && enc_sw_state != prevSwitchState ) {
 		Serial.println("enc switch clicked");
-		if (outputSelector < 4) {
+		if (outputSelector < numberOfOutputs) {
 			outputSelector = outputSelector + 1;
 		} else {
 			outputSelector = 1;
 		}
-		prevSwitchState = enc_sw_read;
-		Serial.print("output selector: ");
-	Serial.println(outputSelector);
-	} else if (enc_sw_read == 1 && enc_sw_read != prevSwitchState ) {
-		prevSwitchState = enc_sw_read;
+		prevSwitchState = enc_sw_state;
+		Serial.println(outputSelector);
+	} else if (enc_sw_state == 1 && enc_sw_state != prevSwitchState ) {
+		prevSwitchState = enc_sw_state;
 	}
 	
 }
 
-void setDivision(){
+void encRotationRead() {
+	enc_a_state = digitalRead(enc_A);
+	if (enc_a_state != enc_a_prevState) {
+		if (digitalRead(enc_B) != enc_a_state) {
+			enc_stepCount += 1;
+			if (enc_stepCount % 2 == 0) {
+				Serial.println("Encoder increment");
+				setDivision(outputSelector, 1);
+			}
+		} else {
+			enc_stepCount -= 1;
+			if (enc_stepCount % 2 == 0) {
+				Serial.println("Encoder decrement");
+				setDivision(outputSelector, -1);
+			}
+		}
+		enc_a_prevState = enc_a_state;
+	}
+}
+
+void setDivision(int index, int value){
 	// TODO: read the user input to set the division rate
+	divisions[index - 1] += value;
+	Serial.println(divisions[index - 1]);
 }
