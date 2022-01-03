@@ -1,3 +1,5 @@
+#include <EEPROM.h>
+
 // there will be an input gate
 // there will be 6 output gates
 // each output will have 2 corresponding LEDs: 1 to indicate pulse (red) and 1 to indicate selected state (yellow).
@@ -10,8 +12,7 @@
 // GENERAL TODOS:
 // save divisions and selected output between reboots.
 // add i2c functionality to change division rate for each output
-// add a reset input (will reset the counter value to 0)
-// define a division range of vlaues that would work well as a clock divider ( i want to have odd divisions too)
+// define a division range of vlaues that would work well as a clock divider ( i want to have odd divisions too) (DONE)
 // finish encoder division selector function (DONE)
 
 
@@ -22,6 +23,7 @@ const int maximumDivisionAmount = 	32;
 
 // define hardware pins:
 #define clk_in  	9
+
 #define out_1  		5
 #define out_2  		6
 #define out_3  		7
@@ -40,18 +42,19 @@ int enc_a_prevState;
 int enc_stepCount =		0;
 int counter = 			0;
 int outputSelector = 	1;
-int divisions[] = {2,4,8,16};
-int divider_1 = 		2;
-int divider_2 = 		4;
-int divider_3 = 		1;
-int divider_4 = 		1;
+int divisions[6]; 
+int outputs[] = {5,6,7,8};
+
 //=======================
 
 
 
 
 void setup() {
-	Serial.begin(9600);
+  //  Serial.begin(9600);
+
+  initEEPROM();
+
 	prevClockState = digitalRead(clk_in);
 	prevSwitchState = digitalRead(enc_sw);
 	pinMode(clk_in, INPUT);
@@ -75,7 +78,6 @@ void loop() {
 
 void count() {
 	counter = counter + 1;
-	// 64 is the maximum division allowed. this will change later.
 	if (counter > maximumDivisionAmount) { counter = 1;}
 }
 
@@ -102,14 +104,14 @@ void trigOutput(int outTrig, int divisionNum){
 void encSwitchRead() {
 	enc_sw_state = digitalRead(enc_sw);
 	if (enc_sw_state == 0 && enc_sw_state != prevSwitchState ) {
-		Serial.println("enc switch clicked");
+//		Serial.println("enc switch clicked");
 		if (outputSelector < numberOfOutputs) {
 			outputSelector = outputSelector + 1;
 		} else {
 			outputSelector = 1;
 		}
 		prevSwitchState = enc_sw_state;
-		Serial.println(outputSelector);
+//		Serial.println(outputSelector);
 	} else if (enc_sw_state == 1 && enc_sw_state != prevSwitchState ) {
 		prevSwitchState = enc_sw_state;
 	}
@@ -122,13 +124,13 @@ void encRotationRead() {
 		if (digitalRead(enc_B) != enc_a_state) {
 			enc_stepCount += 1;
 			if (enc_stepCount % 2 == 0) {
-				Serial.println("Encoder increment");
+//				Serial.println("Encoder increment");
 				setDivision(outputSelector, 1);
 			}
 		} else {
 			enc_stepCount -= 1;
 			if (enc_stepCount % 2 == 0) {
-				Serial.println("Encoder decrement");
+//				Serial.println("Encoder decrement");
 				setDivision(outputSelector, -1);
 			}
 		}
@@ -139,5 +141,16 @@ void encRotationRead() {
 void setDivision(int index, int value){
 	// TODO: read the user input to set the division rate
 	divisions[index - 1] += value;
-	Serial.println(divisions[index - 1]);
+  EEPROM.write(index - 1, divisions[index - 1]);
+}
+
+void initEEPROM() {
+  for (int i = 0; i <  numberOfOutputs; i++) {
+    if (EEPROM.read(i) <= maximumDivisionAmount) {
+      divisions[i] = EEPROM.read(i);
+    } else {
+      EEPROM.write(i,i+1);
+      divisions[i] = EEPROM.read(i);
+    }
+  }
 }
