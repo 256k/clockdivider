@@ -42,7 +42,11 @@ int enc_a_prevState;
 int enc_stepCount =		0;
 int counter = 			0;
 int outputSelector = 	1;
+
+// generate an array for how many outputs we have:
 int divisions[6]; 
+
+// define output pins in outputs array:
 int outputs[] = {5,6,7,8};
 
 //=======================
@@ -53,7 +57,7 @@ int outputs[] = {5,6,7,8};
 void setup() {
   //  Serial.begin(9600);
 
-  initEEPROM();
+	initEEPROM();
 
 	prevClockState = digitalRead(clk_in);
 	prevSwitchState = digitalRead(enc_sw);
@@ -67,11 +71,17 @@ void setup() {
 }
 
 void loop() {
-		readClock();
-		trigOutput(out_1, divisions[0]);
-		trigOutput(out_2, divisions[1]);
-		encSwitchRead();
-		encRotationRead();
+	readClock();
+	trigOutput(out_1, divisions[0]);
+	trigOutput(out_2, divisions[1]);
+
+	// // this loop code is still untested:
+	// for (int i = 0; i < numberOfOutputs; i++) {
+	// 	trigOutput(outputs[i], divisions[i]);
+	// }
+	// ====================================
+	encSwitchRead();
+	encRotationRead();
 		
 	
 }
