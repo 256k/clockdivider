@@ -1,4 +1,4 @@
-#include <EEPROM.h>
+// #include <EEPROM.h>
 
 // there will be an input gate
 // there will be 6 output gates
@@ -17,16 +17,17 @@
 
 
 // configuration of functionality:
-const int numberOfOutputs = 		4;
 const int maximumDivisionAmount = 	32;
+
+// define output pins in outputs array:
+int outputs[] = {2,4,6,8,10,12};
+int numberOfOutputs = 6;
+int ledOutputs[] = {3,5,7,9,11,13};
 //=======================
 
 // define hardware pins:
-#define clk_in  	9
+#define clk_in  	A0
 
-#define out_1  		5
-#define out_2  		6
-#define out_3  		7
 #define enc_sw  	2
 #define enc_A 		3
 #define enc_B 		4
@@ -44,10 +45,10 @@ int counter = 			0;
 int outputSelector = 	1;
 
 // generate an array for how many outputs we have:
-int divisions[6]; 
+int divisions[6] = {2,4,8,16,32,64};
 
-// define output pins in outputs array:
-int outputs[] = {5,6,7,8};
+// test interval
+int i = 0;
 
 //=======================
 
@@ -55,33 +56,40 @@ int outputs[] = {5,6,7,8};
 
 
 void setup() {
-  //  Serial.begin(9600);
+   Serial.begin(9600);
 
-	initEEPROM();
+	// initEEPROM();
 
 	prevClockState = digitalRead(clk_in);
-	prevSwitchState = digitalRead(enc_sw);
+	// prevSwitchState = digitalRead(enc_sw);
 	pinMode(clk_in, INPUT);
-	pinMode(out_1, OUTPUT);
-	pinMode(out_2, OUTPUT);
-	pinMode(out_3, OUTPUT);
-	pinMode(enc_sw, INPUT_PULLUP);
-	pinMode(enc_A, INPUT_PULLUP);
-	pinMode(enc_B, INPUT_PULLUP);
+	for (int i = 0; i < numberOfOutputs; i++) {
+		pinMode(outputs[i], OUTPUT);
+		pinMode(ledOutputs[i], OUTPUT);
+	}
+	// pinMode(out_1, OUTPUT);
+	// pinMode(out_2, OUTPUT);
+	// pinMode(out_3, OUTPUT);
+	// pinMode(enc_sw, INPUT_PULLUP);
+	// pinMode(enc_A, INPUT_PULLUP);
+	// pinMode(enc_B, INPUT_PULLUP);
 }
 
 void loop() {
 	readClock();
-	trigOutput(out_1, divisions[0]);
-	trigOutput(out_2, divisions[1]);
+
+
+	// trigOutput(out_1, divisions[0]);
+	// trigOutput(out_2, divisions[1]);
 
 	// // this loop code is still untested:
-	// for (int i = 0; i < numberOfOutputs; i++) {
-	// 	trigOutput(outputs[i], divisions[i]);
-	// }
+	for (int i = 0; i < numberOfOutputs; i++) {
+		trigOutput(outputs[i], divisions[i]);
+	}
 	// ====================================
 	encSwitchRead();
 	encRotationRead();
+	
 		
 	
 }
@@ -94,6 +102,7 @@ void count() {
 void readClock() {
 	const int inputState = digitalRead(clk_in);
 	if ( inputState == 1 && inputState != prevClockState) {
+		Serial.println("clickIN");
 		prevClockState = inputState;
 		count();
 	} else if (inputState == 0 && inputState != prevClockState) {
@@ -151,16 +160,16 @@ void encRotationRead() {
 void setDivision(int index, int value){
 	// TODO: read the user input to set the division rate
 	divisions[index - 1] += value;
-  EEPROM.write(index - 1, divisions[index - 1]);
+//   EEPROM.write(index - 1, divisions[index - 1]);
 }
 
-void initEEPROM() {
-  for (int i = 0; i <  numberOfOutputs; i++) {
-    if (EEPROM.read(i) <= maximumDivisionAmount) {
-      divisions[i] = EEPROM.read(i);
-    } else {
-      EEPROM.write(i,i+1);
-      divisions[i] = EEPROM.read(i);
-    }
-  }
-}
+// void initEEPROM() {
+//   for (int i = 0; i <  numberOfOutputs; i++) {
+//     if (EEPROM.read(i) <= maximumDivisionAmount) {
+//       divisions[i] = EEPROM.read(i);
+//     } else {
+//       EEPROM.write(i,i+1);
+//       divisions[i] = EEPROM.read(i);
+//     }
+//   }
+// }
