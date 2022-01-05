@@ -45,7 +45,7 @@ int counter = 			0;
 int outputSelector = 	1;
 
 // generate an array for how many outputs we have:
-int divisions[6] = {2,4,8,16,32,64};
+int divisions[6] = {1,2,8,16,32,3};
 
 // test interval
 int i = 0;
@@ -84,7 +84,7 @@ void loop() {
 
 	// // this loop code is still untested:
 	for (int i = 0; i < numberOfOutputs; i++) {
-		trigOutput(outputs[i], divisions[i]);
+		trigOutput(outputs[i], ledOutputs[i], divisions[i]);
 	}
 	// ====================================
 	encSwitchRead();
@@ -97,6 +97,8 @@ void loop() {
 void count() {
 	counter = counter + 1;
 	if (counter > maximumDivisionAmount) { counter = 1;}
+	Serial.print("counter: ");
+	Serial.println(counter);
 }
 
 void readClock() {
@@ -112,11 +114,13 @@ void readClock() {
 
 
 // universal trigger function:
-void trigOutput(int outTrig, int divisionNum){
+void trigOutput(int outTrig, int outLed, int divisionNum){
 	if (counter % divisionNum == 0 && prevClockState == 1 && digitalRead(outTrig) == LOW) {
 		digitalWrite(outTrig, HIGH);
+		digitalWrite(outLed, HIGH);
 	} else if (prevClockState == 0) {
 		digitalWrite(outTrig, LOW);
+		digitalWrite(outLed, LOW);
 	}
 }
 
