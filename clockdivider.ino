@@ -45,8 +45,10 @@ int counter = 			0;
 int outputSelector = 	1;
 
 // generate an array for how many outputs we have:
-int divisions[6] = {1,2,8,16,32,3};
+int divisions[] = {1,2,3,4,5,7};
 
+// actual outputs right now:
+// {4th?, 1st, 3rd, 5th, ?, 6th}
 // test interval
 int i = 0;
 
@@ -56,7 +58,7 @@ int i = 0;
 
 
 void setup() {
-   Serial.begin(9600);
+    // Serial.begin(9600);
 
 	// initEEPROM();
 
@@ -78,33 +80,43 @@ void setup() {
 void loop() {
 	readClock();
 
-
-	// trigOutput(out_1, divisions[0]);
-	// trigOutput(out_2, divisions[1]);
-
-	// // this loop code is still untested:
+	// this loop code is still untested:
 	for (int i = 0; i < numberOfOutputs; i++) {
 		trigOutput(outputs[i], ledOutputs[i], divisions[i]);
 	}
+
 	// ====================================
-	encSwitchRead();
-	encRotationRead();
 	
+	// test outputs LEDs:
+
+	
+		// digitalWrite(ledOutputs[0], HIGH);
+		// digitalWrite(ledOutputs[1], HIGH);
+		// digitalWrite(ledOutputs[2], HIGH);
+		// digitalWrite(ledOutputs[3], HIGH);
+		// digitalWrite(ledOutputs[4], HIGH);
+		// digitalWrite(ledOutputs[5], HIGH);
 		
 	
+
+	// =================
+
+
+	// encSwitchRead();
+	// encRotationRead();
 }
 
 void count() {
 	counter = counter + 1;
 	if (counter > maximumDivisionAmount) { counter = 1;}
-	Serial.print("counter: ");
-	Serial.println(counter);
+	// Serial.print("counter: ");
+	// Serial.println(counter);
 }
 
 void readClock() {
 	const int inputState = digitalRead(clk_in);
 	if ( inputState == 1 && inputState != prevClockState) {
-		Serial.println("clickIN");
+		// Serial.println("clickIN");
 		prevClockState = inputState;
 		count();
 	} else if (inputState == 0 && inputState != prevClockState) {
