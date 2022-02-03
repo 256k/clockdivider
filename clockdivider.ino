@@ -28,13 +28,15 @@ int ledOutputs[] = {3,5,7,9,11,13};
 // define hardware pins:
 #define clk_in  	A0
 
-#define enc_sw  	2
-#define enc_A 		3
-#define enc_B 		4
+#define enc_sw  	A1
+#define enc_A 		A2
+#define enc_B 		A3
 
 //=======================
 
 // define states and variables:
+
+bool outputSelectorMode = false;
 int prevClockState;
 int enc_sw_state;
 int prevSwitchState;
@@ -58,26 +60,26 @@ int i = 0;
 
 
 void setup() {
-    // Serial.begin(9600);
+    Serial.begin(9600);
 
 	// initEEPROM();
 
 	prevClockState = digitalRead(clk_in);
-	// prevSwitchState = digitalRead(enc_sw);
+	prevSwitchState = digitalRead(enc_sw);
 	pinMode(clk_in, INPUT);
+	pinMode(enc_sw, INPUT_PULLUP);
+	pinMode(enc_A, INPUT_PULLUP);
+	pinMode(enc_B, INPUT_PULLUP);
 	for (int i = 0; i < numberOfOutputs; i++) {
 		pinMode(outputs[i], OUTPUT);
 		pinMode(ledOutputs[i], OUTPUT);
 	}
-	// pinMode(out_1, OUTPUT);
-	// pinMode(out_2, OUTPUT);
-	// pinMode(out_3, OUTPUT);
-	// pinMode(enc_sw, INPUT_PULLUP);
-	// pinMode(enc_A, INPUT_PULLUP);
-	// pinMode(enc_B, INPUT_PULLUP);
+
+	
 }
 
 void loop() {
+
 	readClock();
 
 	// this loop code is still untested:
@@ -101,9 +103,19 @@ void loop() {
 
 	// =================
 
+	showSelectedOutput();
+	encSwitchRead();
+	// Serial.println(counter);
+	encRotationRead();
+}
 
-	// encSwitchRead();
-	// encRotationRead();
+void showSelectedOutput() {
+	if (outputSelectorMode) {
+		for (int i = 0; i < numberOfOutputs; i++) {
+			digitalWrite(ledOutputs[i], LOW);
+	}
+		digitalWrite(ledOutputs[outputSelector], HIGH);
+	}
 }
 
 void count() {
@@ -127,7 +139,7 @@ void readClock() {
 
 // universal trigger function:
 void trigOutput(int outTrig, int outLed, int divisionNum){
-	if (counter % divisionNum == 0 && prevClockState == 1 && digitalRead(outTrig) == LOW) {
+	if (!outputSelectorMode && counter % divisionNum == 0 && prevClockState == 1 && digitalRead(outTrig) == LOW) {
 		digitalWrite(outTrig, HIGH);
 		digitalWrite(outLed, HIGH);
 	} else if (prevClockState == 0) {
@@ -139,7 +151,9 @@ void trigOutput(int outTrig, int outLed, int divisionNum){
 void encSwitchRead() {
 	enc_sw_state = digitalRead(enc_sw);
 	if (enc_sw_state == 0 && enc_sw_state != prevSwitchState ) {
-//		Serial.println("enc switch clicked");
+		// encoder switch clicked
+		outputSelectorMode = !outputSelectorMode;
+		Serial.println("enc switch clicked");
 		if (outputSelector < numberOfOutputs) {
 			outputSelector = outputSelector + 1;
 		} else {
@@ -159,14 +173,27 @@ void encRotationRead() {
 		if (digitalRead(enc_B) != enc_a_state) {
 			enc_stepCount += 1;
 			if (enc_stepCount % 2 == 0) {
-//				Serial.println("Encoder increment");
-				setDivision(outputSelector, 1);
+				Serial.println("Encoder increment");
+				
+				if (outputSelectorMode) {
+					outputSelector += 1;
+					Serial.print("outputSelector increase to: ");
+					Serial.println(outputSelector);
+					
+				} else {
+					// setDivision(outputSelector, 1);
+				}
 			}
 		} else {
 			enc_stepCount -= 1;
 			if (enc_stepCount % 2 == 0) {
 //				Serial.println("Encoder decrement");
-				setDivision(outputSelector, -1);
+				
+				if (outputSelectorMode) {
+					outputSelector -= 1;
+				} else {
+					// setDivision(outputSelector, -1);
+				}
 			}
 		}
 		enc_a_prevState = enc_a_state;
