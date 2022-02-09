@@ -1,3 +1,5 @@
+#include <Wire.h>
+
 // #include <EEPROM.h>
 
 // there will be an input gate
@@ -45,6 +47,7 @@ int enc_a_prevState;
 int enc_stepCount =		0;
 int counter = 			0;
 int outputSelector = 	1;
+int i2c_data = 0;
 
 // generate an array for how many outputs we have:
 int divisions[] = {1,2,3,4,5,7};
@@ -60,9 +63,10 @@ int i = 0;
 
 
 void setup() {
-    Serial.begin(9600);
-
-	// initEEPROM();
+  Wire.begin(0xFA);
+  Serial.begin(9600);
+  Wire.onReceive(handle_i2c);
+// initEEPROM();
 
 	prevClockState = digitalRead(clk_in);
 	prevSwitchState = digitalRead(enc_sw);
@@ -81,7 +85,7 @@ void setup() {
 void loop() {
 
 	readClock();
-
+//Serial.print("1");
 	// this loop code is still untested:
 	for (int i = 0; i < numberOfOutputs; i++) {
 		trigOutput(outputs[i], ledOutputs[i], divisions[i]);
@@ -107,6 +111,23 @@ void loop() {
 	encSwitchRead();
 	// Serial.println(counter);
 	encRotationRead();
+}
+
+
+
+void handle_i2c(int howMany) {
+//  i2c_data = Wire.read();
+  while(0 < Wire.available()) // loop through all but the last
+  {
+    char c = Wire.read(); // receive byte as a character
+//    Serial.print("i2c C: ");
+    Serial.print(c);         // print the character
+    
+    
+  }
+  Serial.println("");
+//  Serial.print("i2c received: ");
+//  Serial.println(i2c_data);
 }
 
 void showSelectedOutput() {
