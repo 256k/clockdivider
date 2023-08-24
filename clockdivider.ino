@@ -1,3 +1,11 @@
+/*
+*
+* DIO
+* ARDUINO SCRIPT FOE EURORACK MODULE 
+* By 256k
+*
+*/
+
 #include <Wire.h>
 
 // #include <EEPROM.h>
